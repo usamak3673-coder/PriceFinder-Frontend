@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FindCheaper — Compare Prices Instantly</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Outfit:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ── Reset & Tokens ─────────────────────────────────── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --o:#E8560A; --o2:#ff6820; --obg:#fff4ee; --omid:#ffe4d4;
+  --ink:#1a1008; --mut:#8c6a50; --line:#f0d8c8;
+  --w:#fff; --green:#1b6b3a; --gbg:#eaf5ee; --blue:#1a4fa0; --bbg:#eaf0fa;
+  --display:'Syne',sans-serif; --body:'Outfit',sans-serif;
+}
+html{scroll-behavior:smooth;}
+body{font-family:var(--body);background:#fafaf8;color:var(--ink);-webkit-font-smoothing:antialiased;}
+
+/* ── Nav ────────────────────────────────────────────── */
+nav{background:var(--w);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:100;box-shadow:0 1px 12px rgba(232,86,10,.06);}
+.nav-inner{max-width:880px;margin:0 auto;padding:0 24px;height:60px;display:flex;align-items:center;justify-content:space-between;}
+.logo{font-family:var(--display);font-size:20px;font-weight:800;color:var(--ink);text-decoration:none;display:flex;align-items:center;gap:8px;}
+.logo-sq{width:28px;height:28px;background:var(--o);border-radius:7px;display:flex;align-items:center;justify-content:center;}
+.logo-sq svg{width:14px;height:14px;fill:#fff;}
+.nav-pill{font-size:11px;font-weight:600;background:var(--obg);color:var(--o);border:1px solid var(--omid);border-radius:20px;padding:3px 10px;}
+
+/* ── Hero ───────────────────────────────────────────── */
+.hero{background:var(--w);border-bottom:1px solid var(--line);padding:56px 24px 44px;text-align:center;}
+.hero h1{font-family:var(--display);font-size:clamp(32px,5vw,58px);font-weight:800;letter-spacing:-2px;line-height:1;color:var(--ink);margin-bottom:14px;}
+.hero h1 em{font-style:normal;color:var(--o);}
+.hero p{font-size:16px;color:var(--mut);max-width:440px;margin:0 auto 32px;line-height:1.65;}
+
+/* ── Search ─────────────────────────────────────────── */
+.search-wrap{max-width:580px;margin:0 auto;}
+.search-box{display:flex;gap:8px;background:var(--w);border:2px solid var(--line);border-radius:14px;padding:6px 6px 6px 18px;transition:border-color .2s;box-shadow:0 4px 20px rgba(232,86,10,.07);}
+.search-box:focus-within{border-color:var(--o);}
+.search-box input{flex:1;border:none;outline:none;font-family:var(--body);font-size:15px;color:var(--ink);background:transparent;min-width:0;}
+.search-box input::placeholder{color:var(--mut);}
+.search-btn{background:var(--o);color:#fff;font-family:var(--body);font-size:14px;font-weight:600;padding:12px 22px;border-radius:10px;border:none;cursor:pointer;white-space:nowrap;transition:background .15s,transform .15s;}
+.search-btn:hover{background:var(--o2);transform:translateY(-1px);}
+.search-btn:disabled{opacity:.6;cursor:not-allowed;transform:none;}
+
+.examples{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin-top:14px;}
+.ex{font-size:12px;font-weight:500;color:var(--mut);background:var(--obg);border:1px solid var(--omid);border-radius:20px;padding:4px 12px;cursor:pointer;transition:all .15s;}
+.ex:hover{background:var(--omid);color:var(--o);}
+
+/* ── Steps ──────────────────────────────────────────── */
+.steps{max-width:580px;margin:24px auto 0;display:flex;}
+.step{flex:1;display:flex;align-items:center;gap:6px;padding:9px 12px;background:var(--w);border:1px solid var(--line);font-size:11px;color:var(--mut);transition:all .2s;}
+.step:first-child{border-radius:8px 0 0 8px;}
+.step:last-child{border-radius:0 8px 8px 0;border-left:none;}
+.step:not(:first-child):not(:last-child){border-left:none;}
+.step.active{color:var(--ink);background:var(--obg);border-color:var(--omid);}
+.step.done{color:var(--green);background:var(--gbg);border-color:#b8dfc4;}
+.sn{width:18px;height:18px;border-radius:50%;background:var(--line);font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--mut);}
+.step.active .sn{background:var(--o);color:#fff;}
+.step.done .sn{background:var(--green);color:#fff;}
+
+/* ── Main ───────────────────────────────────────────── */
+.main{max-width:880px;margin:0 auto;padding:28px 24px 80px;}
+
+/* ── Status ─────────────────────────────────────────── */
+.status-bar{background:var(--obg);border:1px solid var(--omid);border-radius:10px;padding:13px 18px;display:none;align-items:center;gap:12px;margin-bottom:18px;}
+.status-bar.show{display:flex;}
+.spin{width:18px;height:18px;border:2px solid var(--omid);border-top-color:var(--o);border-radius:50%;animation:spin .8s linear infinite;flex-shrink:0;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.status-bar span{font-size:14px;color:var(--ink);}
+
+/* ── Error ──────────────────────────────────────────── */
+.err-bar{background:#faeaea;border:1px solid #f5c1c1;border-radius:10px;padding:13px 18px;font-size:14px;color:#cc2b22;margin-bottom:18px;display:none;}
+.err-bar.show{display:block;}
+
+/* ── Extracted ──────────────────────────────────────── */
+.extracted{background:var(--w);border:1.5px solid var(--line);border-radius:12px;padding:18px 20px;margin-bottom:18px;display:none;}
+.extracted.show{display:block;}
+.ext-label{font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--mut);margin-bottom:6px;}
+.ext-name{font-family:var(--display);font-size:18px;font-weight:700;color:var(--ink);margin-bottom:10px;}
+.ext-row{display:flex;gap:8px;}
+.ext-row input{flex:1;padding:9px 14px;border:1.5px solid var(--line);border-radius:8px;font-family:var(--body);font-size:13px;color:var(--ink);outline:none;transition:border-color .15s;}
+.ext-row input:focus{border-color:var(--o);}
+.ext-row button{background:var(--o);color:#fff;font-family:var(--body);font-size:12px;font-weight:700;padding:9px 16px;border-radius:8px;border:none;cursor:pointer;white-space:nowrap;}
+.ext-row button:hover{background:var(--o2);}
+
+/* ── Summary ────────────────────────────────────────── */
+.summary{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px;}
+.sc{background:var(--w);border:1.5px solid var(--line);border-radius:12px;padding:14px;}
+.sc-label{font-size:10px;font-weight:600;color:var(--mut);text-transform:uppercase;letter-spacing:1px;margin-bottom:5px;}
+.sc-val{font-family:var(--display);font-size:22px;font-weight:800;color:var(--ink);letter-spacing:-.5px;}
+.sc-val.g{color:var(--green);}
+.sc-val.o{color:var(--o);}
+
+/* ── Toolbar ────────────────────────────────────────── */
+.toolbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;gap:12px;flex-wrap:wrap;}
+.tl-left{font-size:13px;font-weight:600;color:var(--ink);}
+.tl-left span{color:var(--o);}
+.sorts{display:flex;gap:4px;}
+.sb{font-size:11px;font-weight:500;padding:5px 12px;border-radius:20px;border:1px solid var(--line);background:var(--w);color:var(--mut);cursor:pointer;transition:all .15s;}
+.sb.active{background:var(--obg);border-color:var(--omid);color:var(--o);font-weight:600;}
+
+/* ── Result Cards ───────────────────────────────────── */
+.results{display:flex;flex-direction:column;gap:10px;}
+.rcard{background:var(--w);border:1.5px solid var(--line);border-radius:14px;padding:14px 16px;display:flex;align-items:center;gap:14px;text-decoration:none;color:inherit;transition:border-color .2s,transform .2s,box-shadow .2s;}
+.rcard:hover{border-color:var(--o);transform:translateY(-2px);box-shadow:0 8px 24px rgba(232,86,10,.1);}
+.rcard.best{border-color:var(--green);border-width:2px;}
+.rcard-img{width:56px;height:56px;border-radius:8px;object-fit:contain;background:var(--obg);flex-shrink:0;border:1px solid var(--line);}
+.rcard-ph{width:56px;height:56px;border-radius:8px;background:var(--obg);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;font-family:var(--display);font-size:10px;font-weight:700;flex-shrink:0;text-align:center;padding:4px;}
+.rcard-info{flex:1;min-width:0;}
+.rcard-store{font-size:13px;font-weight:700;color:var(--ink);margin-bottom:2px;}
+.rcard-title{font-size:12px;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:5px;}
+.badges{display:flex;gap:4px;flex-wrap:wrap;}
+.badge{font-size:9px;font-weight:700;padding:2px 7px;border-radius:20px;}
+.b-best{background:var(--gbg);color:var(--green);}
+.b-free{background:var(--bbg);color:var(--blue);}
+.b-none{background:var(--line);color:var(--mut);}
+.rcard-price{text-align:right;flex-shrink:0;}
+.price{font-family:var(--display);font-size:20px;font-weight:800;color:var(--ink);letter-spacing:-.5px;}
+.price.g{color:var(--green);}
+.no-price{font-size:12px;color:var(--mut);}
+.arr{font-size:16px;color:var(--line);flex-shrink:0;transition:color .15s;}
+.rcard:hover .arr{color:var(--o);}
+
+/* ── No Results ─────────────────────────────────────── */
+.no-res{text-align:center;padding:60px 20px;display:none;}
+.no-res.show{display:block;}
+.no-res h3{font-family:var(--display);font-size:20px;font-weight:700;margin-bottom:8px;}
+.no-res p{font-size:14px;color:var(--mut);}
+
+/* ── Footer ─────────────────────────────────────────── */
+footer{text-align:center;padding:20px 24px;font-size:12px;color:var(--mut);border-top:1px solid var(--line);margin-top:40px;}
+
+/* ── Responsive ─────────────────────────────────────── */
+@media(max-width:600px){
+  .summary{grid-template-columns:repeat(2,1fr);}
+  .steps{display:none;}
+  .rcard{gap:10px;padding:12px;}
+  .price{font-size:17px;}
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-inner">
+    <a href="/" class="logo">
+      <div class="logo-sq"><svg viewBox="0 0 16 16"><path d="M2 2h5v5H2zM9 2h5v5H9zM2 9h5v5H2zM9 9h5v5H9z"/></svg></div>
+      FindCheaper
+    </a>
+    <span class="nav-pill">Free to use</span>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <h1>Find the <em>cheapest</em><br>price anywhere.</h1>
+  <p>Paste any product link — we search every store and find the best deal instantly.</p>
+
+  <div class="search-wrap">
+    <div class="search-box">
+      <input type="url" id="urlInput" placeholder="Paste a product link… https://amazon.com/dp/..." autocomplete="off"/>
+      <button class="search-btn" id="searchBtn" onclick="run()">Find prices</button>
+    </div>
+    <div class="examples">
+      <span class="ex" onclick="demo('https://www.amazon.com/dp/B09X7CRKRX')">Sony WH-1000XM5</span>
+      <span class="ex" onclick="demo('https://www.amazon.com/dp/B0BDHWDR12')">AirPods Pro</span>
+      <span class="ex" onclick="demo('https://www.amazon.com/dp/B07FZ8S74R')">Instant Pot</span>
+      <span class="ex" onclick="demo('https://www.amazon.com/dp/B08N5WRWNW')">Galaxy S21</span>
+    </div>
+  </div>
+
+  <div class="steps">
+    <div class="step active" id="s1"><span class="sn">1</span>Paste link</div>
+    <div class="step" id="s2"><span class="sn">2</span>Read product</div>
+    <div class="step" id="s3"><span class="sn">3</span>Search stores</div>
+    <div class="step" id="s4"><span class="sn">4</span>Compare</div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="status-bar" id="statusBar"><div class="spin"></div><span id="statusTxt">Loading…</span></div>
+  <div class="err-bar" id="errBar"></div>
+
+  <div class="extracted" id="extracted">
+    <div class="ext-label">Product detected</div>
+    <div class="ext-name" id="extName"></div>
+    <div class="ext-row">
+      <input type="text" id="extInput" placeholder="Edit name if needed…"/>
+      <button onclick="searchByName()">Search →</button>
+    </div>
+  </div>
+
+  <div id="resultsWrap" style="display:none">
+    <div class="summary">
+      <div class="sc"><div class="sc-label">Lowest price</div><div class="sc-val g" id="sLow">—</div></div>
+      <div class="sc"><div class="sc-label">Highest price</div><div class="sc-val" id="sHigh">—</div></div>
+      <div class="sc"><div class="sc-label">You could save</div><div class="sc-val o" id="sSave">—</div></div>
+      <div class="sc"><div class="sc-label">Stores found</div><div class="sc-val" id="sCount">—</div></div>
+    </div>
+    <div class="toolbar">
+      <div class="tl-left">Showing <span id="rCount">0</span> results</div>
+      <div class="sorts">
+        <button class="sb active" onclick="doSort('price',this)">Lowest price</button>
+        <button class="sb" onclick="doSort('store',this)">Store A–Z</button>
+        <button class="sb" onclick="doSort('ship',this)">Free shipping</button>
+      </div>
+    </div>
+    <div class="results" id="resultList"></div>
+  </div>
+
+  <div class="no-res" id="noRes">
+    <h3>No prices found</h3>
+    <p>Try editing the product name above to be more specific.</p>
+  </div>
+</div>
+
+<footer>FindCheaper searches the web for publicly listed prices. Always verify on the retailer's site before purchasing.</footer>
+
+<script>
+// ════════════════════════════════════════════════════
+// CONFIG — Change this to your Railway backend URL
+// ════════════════════════════════════════════════════
+const API = 'https://YOUR-RAILWAY-URL.up.railway.app';
+
+// ════════════════════════════════════════════════════
+// STATE
+// ════════════════════════════════════════════════════
+let allResults = [];
+
+// ════════════════════════════════════════════════════
+// STORE COLORS
+// ════════════════════════════════════════════════════
+const COLORS = {
+  amazon:'#FF9900', ebay:'#E53238', walmart:'#0071CE',
+  target:'#CC0000', bestbuy:'#003087', newegg:'#F27400',
+};
+function storeColor(d){ const k=Object.keys(COLORS).find(k=>d.includes(k)); return k?COLORS[k]:'#888'; }
+function storeAbbr(d){
+  const m={amazon:'AMZ',ebay:'EBY',walmart:'WMT',target:'TGT',bestbuy:'BBY',newegg:'NEW'};
+  const k=Object.keys(m).find(k=>d.includes(k)); return k?m[k]:d.slice(0,3).toUpperCase();
+}
+
+// ════════════════════════════════════════════════════
+// STEPS
+// ════════════════════════════════════════════════════
+function setStep(n){
+  [1,2,3,4].forEach(i=>{
+    const el=document.getElementById('s'+i);
+    const num=el.querySelector('.sn');
+    el.className='step'+(i<n?' done':i===n?' active':'');
+    num.textContent=i<n?'✓':i;
+  });
+}
+
+// ════════════════════════════════════════════════════
+// UI
+// ════════════════════════════════════════════════════
+const showStatus = msg => { document.getElementById('statusTxt').textContent=msg; document.getElementById('statusBar').classList.add('show'); };
+const hideStatus = ()  => document.getElementById('statusBar').classList.remove('show');
+const showErr    = msg => { const e=document.getElementById('errBar'); e.textContent=msg; e.classList.add('show'); };
+const hideErr    = ()  => document.getElementById('errBar').classList.remove('show');
+const setBtn = loading => {
+  const b=document.getElementById('searchBtn');
+  b.disabled=loading; b.textContent=loading?'Searching…':'Find prices';
+};
+
+function demo(url){ document.getElementById('urlInput').value=url; run(); }
+
+// ════════════════════════════════════════════════════
+// MAIN FLOW
+// ════════════════════════════════════════════════════
+async function run(){
+  const url=document.getElementById('urlInput').value.trim();
+  hideErr();
+  document.getElementById('extracted').classList.remove('show');
+  document.getElementById('resultsWrap').style.display='none';
+  document.getElementById('noRes').classList.remove('show');
+
+  if(!url){ showErr('Please paste a product URL first.'); return; }
+  if(!url.startsWith('http')){ showErr('Please enter a valid URL starting with https://'); return; }
+
+  setBtn(true); setStep(2); showStatus('Reading the URL…');
+
+  try {
+    // Step 1: extract
+    const r1 = await fetch(`${API}/extract`,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({url})
+    });
+    if(!r1.ok) throw new Error('Server error '+r1.status+'. Is your Railway backend deployed?');
+    const d1 = await r1.json();
+    const name = d1.productName || 'Unknown product';
+
+    document.getElementById('extName').textContent=name;
+    document.getElementById('extInput').value=name;
+    document.getElementById('extracted').classList.add('show');
+
+    setStep(3); showStatus(`Searching stores for "${name}"…`);
+    await searchAndShow(name);
+
+  } catch(err){
+    hideStatus(); setStep(1);
+    showErr('Error: '+err.message);
+  } finally {
+    setBtn(false);
+  }
+}
+
+async function searchByName(){
+  const name=document.getElementById('extInput').value.trim();
+  if(!name) return;
+  document.getElementById('extName').textContent=name;
+  document.getElementById('resultsWrap').style.display='none';
+  document.getElementById('noRes').classList.remove('show');
+  setStep(3); showStatus(`Searching for "${name}"…`); setBtn(true);
+  try{ await searchAndShow(name); }
+  catch(e){ hideStatus(); showErr('Search failed: '+e.message); }
+  finally{ setBtn(false); }
+}
+
+async function searchAndShow(name){
+  const r = await fetch(`${API}/search`,{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({productName:name})
+  });
+  if(!r.ok){
+    const e=await r.json().catch(()=>({}));
+    throw new Error(e.error||'Search request failed');
+  }
+  const data=await r.json();
+  allResults=data.results||[];
+  setStep(4); hideStatus();
+  if(!allResults.length){ document.getElementById('noRes').classList.add('show'); return; }
+  showResults(allResults);
+}
+
+// ════════════════════════════════════════════════════
+// DISPLAY
+// ════════════════════════════════════════════════════
+function showResults(results){
+  const prices=results.filter(r=>r.price).map(r=>r.price);
+  const low=prices.length?Math.min(...prices):null;
+  const high=prices.length?Math.max(...prices):null;
+  document.getElementById('sLow').textContent  =low ?'$'+low.toFixed(2) :'—';
+  document.getElementById('sHigh').textContent =high?'$'+high.toFixed(2):'—';
+  document.getElementById('sSave').textContent =(low&&high)?'$'+(high-low).toFixed(2):'—';
+  document.getElementById('sCount').textContent=results.length;
+  document.getElementById('rCount').textContent=results.length;
+  document.getElementById('resultsWrap').style.display='block';
+  renderCards(results,low);
+}
+
+function renderCards(results,lowest){
+  document.getElementById('resultList').innerHTML=results.map(r=>{
+    const best=r.price&&r.price===lowest;
+    const c=storeColor(r.domain||'');
+    const a=storeAbbr(r.domain||'');
+    const img=r.image
+      ?`<img src="${r.image}" class="rcard-img" alt="${r.store}" onerror="this.style.display='none'">`
+      :`<div class="rcard-ph" style="color:${c}">${a}</div>`;
+    const badges=[];
+    if(best) badges.push('<span class="badge b-best">Best price</span>');
+    if(r.freeShipping) badges.push('<span class="badge b-free">Free shipping</span>');
+    if(!r.price) badges.push('<span class="badge b-none">Check site</span>');
+    const priceHtml=r.price
+      ?`<div class="price${best?' g':''}">${'$'+r.price.toFixed(2)}</div>`
+      :`<div class="no-price">Visit site</div>`;
+    return `
+    <a class="rcard${best?' best':''}" href="${r.url}" target="_blank" rel="noopener">
+      ${img}
+      <div class="rcard-info">
+        <div class="rcard-store">${r.store||r.domain}</div>
+        <div class="rcard-title">${r.title||''}</div>
+        <div class="badges">${badges.join('')}</div>
+      </div>
+      <div class="rcard-price">${priceHtml}</div>
+      <div class="arr">›</div>
+    </a>`;
+  }).join('');
+}
+
+function doSort(by,btn){
+  document.querySelectorAll('.sb').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  let s=[...allResults];
+  if(by==='price') s.sort((a,b)=>{if(a.price&&b.price)return a.price-b.price;return a.price?-1:1;});
+  if(by==='store') s.sort((a,b)=>(a.store||a.domain).localeCompare(b.store||b.domain));
+  if(by==='ship')  s=[...s.filter(r=>r.freeShipping),...s.filter(r=>!r.freeShipping)];
+  const p=s.filter(r=>r.price).map(r=>r.price);
+  renderCards(s,p.length?Math.min(...p):null);
+}
+
+document.getElementById('urlInput').addEventListener('keydown',e=>{if(e.key==='Enter')run();});
+</script>
+</body>
+</html>
